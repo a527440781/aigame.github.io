@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古诗词接龙</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8B4513',
+                        secondary: '#4CAF50',
+                        accent: '#FFD700',
+                        light: '#F5F5DC',
+                        dark: '#5D4037'
+                    },
+                    fontFamily: {
+                        xiaowei: ['"ZCOOL XiaoWei"', 'serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            }
+            .pulse {
+                animation: pulse 2s infinite;
+            }
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            .fade-in {
+                animation: fadeIn 0.5s ease-in-out;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            .slide-up {
+                animation: slideUp 0.5s ease-out;
+            }
+            @keyframes slideUp {
+                from { transform: translateY(20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            .typing {
+                animation: typing 1s steps(40, end);
+            }
+            @keyframes typing {
+                from { width: 0 }
+                to { width: 100% }
+            }
+            .correct-answer {
+                animation: correctAnswer 0.5s ease-in-out;
+            }
+            @keyframes correctAnswer {
+                0% { transform: scale(1); background-color: white; }
+                50% { transform: scale(1.05); background-color: #CCFFCC; }
+                100% { transform: scale(1); background-color: white; }
+            }
+            .wrong-answer {
+                animation: wrongAnswer 0.5s ease-in-out;
+            }
+            @keyframes wrongAnswer {
+                0% { transform: scale(1); background-color: white; }
+                50% { transform: scale(1.05); background-color: #FFCCCC; }
+                100% { transform: scale(1); background-color: white; }
+            }
+        }
+    </style>
+</head>
+<body class="bg-light font-xiaowei min-h-screen flex flex-col">
+    <!-- 顶部导航 -->
+    <header class="bg-primary text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-shadow flex items-center">
+                <i class="fa-solid fa-book-open mr-3"></i>古诗词接龙
+            </h1>
+            <div class="flex space-x-2">
+                <button id="helpBtn" class="btn-secondary flex items-center">
+                    <i class="fa-solid fa-question-circle mr-2"></i>帮助
+                </button>
+                <button id="restartBtn" class="btn-secondary flex items-center">
+                    <i class="fa-solid fa-refresh mr-2"></i>重新开始
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-6">
+        <!-- 难度选择界面 -->
+        <section id="difficultySelection" class="text-center fade-in">
+            <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-primary mb-6">选择难度</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+                <div class="bg-white rounded-xl shadow-lg p-6 border-2 border-secondary hover:border-primary/70 transition-all duration-300 transform hover:-translate-y-2 cursor-pointer" data-difficulty="easy">
+                    <h3 class="text-xl font-bold text-primary mb-2">简单</h3>
+                    <p class="text-dark mb-4">基础诗句</p>
+                    <p class="text-sm text-gray-600">每句4-5个字</p>
+                    <div class="mt-4">
+                        <i class="fa-solid fa-star text-accent text-2xl"></i>
+                        <i class="fa-solid fa-star text-gray-300 text-2xl"></i>
+                        <i class="fa-solid fa-star text-gray-300 text-2xl"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 border-2 border-secondary hover:border-primary/70 transition-all duration-300 transform hover:-translate-y-2 cursor-pointer" data-difficulty="medium">
+                    <h3 class="text-xl font-bold text-primary mb-2">中等</h3>
+                    <p class="text-dark mb-4">进阶诗句</p>
+                    <p class="text-sm text-gray-600">每句5-7个字</p>
+                    <div class="mt-4">
+                        <i class="fa-solid fa-star text-accent text-2xl"></i>
+                        <i class="fa-solid fa-star text-accent text-2xl"></i>
+                        <i class="fa-solid fa-star text-gray-300 text-2xl"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 border-2 border-secondary hover:border-primary/70 transition-all duration-300 transform hover:-translate-y-2 cursor-pointer" data-difficulty="hard">
+                    <h3 class="text-xl font-bold text-primary mb-2">困难</h3>
+                    <p class="text-dark mb-4">高级诗句</p>
+                    <p class="text-sm text-gray-600">每句7个字以上</p>
+                    <div class="mt-4">
+                        <i class="fa-solid fa-star text-accent text-2xl"></i>
+                        <i class="fa-solid fa-star text-accent text-2xl"></i>
+                        <i class="fa-solid fa-star text-accent text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 游戏界面 -->
+        <section id="gameSection" class="hidden fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- 左侧：游戏信息 -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                        <h2 class="text-xl font-bold text-primary mb-4">游戏信息</h2>
+                        <div class="space-y-4">
+                            <div class="bg-light rounded-lg p-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-dark">当前难度</span>
+                                    <span id="currentDifficulty" class="font-bold text-primary"></span>
+                                </div>
+                            </div>
+                            <div class="bg-light rounded-lg p-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-dark">当前得分</span>
+                                    <span id="currentScore" class="font-bold text-primary">0</span>
+                                </div>
+                            </div>
+                            <div class="bg-light rounded-lg p-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-dark">连续答对</span>
+                                    <span id="streakCount" class="font-bold text-primary">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧：游戏内容 -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6">
+                        <h2 class="text-xl md:text-2xl font-bold text-primary mb-4">接龙挑战</h2>
+                        
+                        <div class="bg-light rounded-lg p-4 mb-6">
+                            <span class="text-dark font-bold block mb-2">上一句：</span>
+                            <div id="previousLine" class="text-[clamp(1.2rem,3vw,1.8rem)] font-bold text-primary text-center"></div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="userAnswer" class="block text-dark font-bold mb-2">请接下一句：</label>
+                            <input type="text" id="userAnswer" class="w-full px-4 py-3 rounded-lg border-2 border-primary/30 focus:border-primary focus:outline-none text-lg font-xiaowei" placeholder="请输入下一句...">
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <button id="submitBtn" class="btn-primary flex items-center">
+                                <i class="fa-solid fa-check mr-2"></i>提交答案
+                            </button>
+                            <button id="skipBtn" class="btn-secondary flex items-center">
+                                <i class="fa-solid fa-forward mr-2"></i>跳过
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                        <h2 class="text-xl font-bold text-primary mb-4">提示与反馈</h2>
+                        <div id="feedback" class="text-gray-700 min-h-[100px]"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 胜利界面 -->
+        <section id="victoryScreen" class="hidden text-center fade-in">
+            <div class="bg-white rounded-xl shadow-xl p-8 max-w-2xl mx-auto transform transition-all duration-500 pulse">
+                <div class="text-6xl mb-4 text-accent">🎉</div>
+                <h2 class="text-3xl font-bold text-primary mb-2">恭喜你!</h2>
+                <p class="text-xl text-dark mb-6">你已完成挑战!</p>
+                
+                <div class="bg-light rounded-lg p-4 mb-6">
+                    <p class="font-bold text-lg mb-2">游戏成绩</p>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-white rounded-lg p-3 shadow">
+                            <p class="text-dark">最终得分</p>
+                            <p id="finalScore" class="text-2xl font-bold text-primary"></p>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 shadow">
+                            <p class="text-dark">连续答对</p>
+                            <p id="finalStreak" class="text-2xl font-bold text-primary"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button id="playAgainBtn" class="btn-primary">
+                        <i class="fa-solid fa-refresh mr-2"></i>再玩一次
+                    </button>
+                    <button id="changeDifficultyBtn" class="btn-secondary">
+                        <i class="fa-solid fa-sliders mr-2"></i>更换难度
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-primary text-white py-4 mt-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>古诗词接龙 © 2025 | 适合五年级小学生的学习游戏</p>
+        </div>
+    </footer>
+
+    <!-- 帮助模态框 -->
+    <div id="helpModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden fade-in">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-primary">游戏帮助</h3>
+                <button id="closeHelpBtn" class="text-gray-500 hover:text-primary">
+                    <i class="fa-solid fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-4 text-gray-700">
+                <div>
+                    <h4 class="font-bold text-dark">游戏目标</h4>
+                    <p>根据给出的上一句诗词，接出下一句，考验你对古诗词的掌握程度。</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-dark">如何玩</h4>
+                    <ol class="list-decimal pl-5 space-y-1">
+                        <li>选择一个难度级别开始游戏</li>
+                        <li>根据显示的上一句诗词，在输入框中输入下一句</li>
+                        <li>点击"提交答案"按钮检查你的回答</li>
+                        <li>回答正确会获得分数，连续答对会获得额外奖励</li>
+                        <li>如果遇到困难，可以使用跳过功能</li>
+                    </ol>
+                </div>
+                <div>
+                    <h4 class="font-bold text-dark">提示</h4>
+                    <p>每个难度级别有不同的题目难度，连续答对会增加你的得分倍率。尝试记住诗词的上下文，这会帮助你更好地完成接龙。</p>
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <button id="gotItBtn" class="btn-primary">我知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 诗词数据库（移除了关键字和赏析）
+        const poemsDatabase = {
+            easy: [
+                {
+                    lines: [
+                        { previous: "床前明月光", next: "疑是地上霜" },
+                        { previous: "疑是地上霜", next: "举头望明月" },
+                        { previous: "举头望明月", next: "低头思故乡" }
+                    ]
+                },
+                {
+                    lines: [
+                        { previous: "春眠不觉晓", next: "处处闻啼鸟" },
+                        { previous: "处处闻啼鸟", next: "夜来风雨声" },
+                        { previous: "夜来风雨声", next: "花落知多少" }
+                    ]
+                },
+                {
+                    lines: [
+                        { previous: "白日依山尽", next: "黄河入海流" },
+                        { previous: "黄河入海流", next: "欲穷千里目" },
+                        { previous: "欲穷千里目", next: "更上一层楼" }
+                    ]
+                }
+            ],
+            medium: [
+                {
+                    lines: [
+                        { previous: "日照香炉生紫烟", next: "遥看瀑布挂前川" },
+                        { previous: "遥看瀑布挂前川", next: "飞流直下三千尺" },
+                        { previous: "飞流直下三千尺", next: "疑是银河落九天" }
+                    ]
+                },
+                {
+                    lines: [
+                        { previous: "朝辞白帝彩云间", next: "千里江陵一日还" },
+                        { previous: "千里江陵一日还", next: "两岸猿声啼不住" },
+                        { previous: "两岸猿声啼不住", next: "轻舟已过万重山" }
+                    ]
+                },
+                {
+                    lines: [
+                        { previous: "好雨知时节", next: "当春乃发生" },
+                        { previous: "随风潜入夜", next: "润物细无声" },
+                        { previous: "野径云俱黑", next: "江船火独明" }
+                    ]
+                }
+            ],
+            hard: [
+                {
+                    lines: [
+                        { previous: "丞相祠堂何处寻", next: "锦官城外柏森森" },
+                        { previous: "映阶碧草自春色", next: "隔叶黄鹂空好音" },
+                        { previous: "三顾频烦天下计", next: "两朝开济老臣心" }
+                    ]
+                },
+                {
+                    lines: [
+                        { previous: "湖光秋月两相和", next: "潭面无风镜未磨" },
+                        { previous: "潭面无风镜未磨", next: "遥望洞庭山水翠" },
+                        { previous: "遥望洞庭山水翠", next: "白银盘里一青螺" }
+                    ]
+                },
+                {
+                    lines: [
+                        { previous: "离离原上草", next: "一岁一枯荣" },
+                        { previous: "野火烧不尽", next: "春风吹又生" },
+                        { previous: "远芳侵古道", next: "晴翠接荒城" }
+                    ]
+                }
+            ]
+        };
+
+        // 游戏状态
+        let gameState = {
+            difficulty: null,
+            currentPoem: null,
+            currentLine: null,
+            score: 0,
+            streak: 0,
+            poemIndex: 0,
+            lineIndex: 0
+        };
+
+        // DOM 元素
+        const difficultySelection = document.getElementById('difficultySelection');
+        const gameSection = document.getElementById('gameSection');
+        const victoryScreen = document.getElementById('victoryScreen');
+        const previousLine = document.getElementById('previousLine');
+        const userAnswer = document.getElementById('userAnswer');
+        const submitBtn = document.getElementById('submitBtn');
+        const skipBtn = document.getElementById('skipBtn');
+        const feedback = document.getElementById('feedback');
+        const currentDifficulty = document.getElementById('currentDifficulty');
+        const currentScore = document.getElementById('currentScore');
+        const streakCount = document.getElementById('streakCount');
+        const finalScore = document.getElementById('finalScore');
+        const finalStreak = document.getElementById('finalStreak');
+        const helpBtn = document.getElementById('helpBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const changeDifficultyBtn = document.getElementById('changeDifficultyBtn');
+        const helpModal = document.getElementById('helpModal');
+        const closeHelpBtn = document.getElementById('closeHelpBtn');
+        const gotItBtn = document.getElementById('gotItBtn');
+
+        // 开始游戏
+        function startGame(difficulty) {
+            gameState.difficulty = difficulty;
+            gameState.score = 0;
+            gameState.streak = 0;
+            gameState.poemIndex = 0;
+            gameState.lineIndex = 0;
+            
+            // 加载第一首诗
+            loadNextPoem();
+            
+            // 更新游戏信息
+            updateGameInfo();
+            
+            // 隐藏难度选择，显示游戏界面
+            difficultySelection.classList.add('hidden');
+            victoryScreen.classList.add('hidden');
+            gameSection.classList.remove('hidden');
+            
+            // 聚焦到输入框
+            userAnswer.focus();
+        }
+
+        // 加载下一首诗
+        function loadNextPoem() {
+            const poems = poemsDatabase[gameState.difficulty];
+            if (gameState.poemIndex >= poems.length) {
+                // 所有诗都完成了，显示胜利界面
+                showVictoryScreen();
+                return;
+            }
+            
+            gameState.currentPoem = poems[gameState.poemIndex];
+            gameState.lineIndex = 0;
+            
+            // 加载第一句
+            loadNextLine();
+        }
+
+        // 加载下一句
+        function loadNextLine() {
+            const lines = gameState.currentPoem.lines;
+            if (gameState.lineIndex >= lines.length) {
+                // 这首诗的所有句子都完成了，加载下一首
+                gameState.poemIndex++;
+                loadNextPoem();
+                return;
+            }
+            
+            gameState.currentLine = lines[gameState.lineIndex];
+            
+            // 显示上一句
+            previousLine.textContent = gameState.currentLine.previous;
+            
+            // 清空输入框和反馈
+            userAnswer.value = '';
+            feedback.innerHTML = '';
+            
+            // 添加动画效果
+            previousLine.classList.add('fade-in');
+            
+            setTimeout(() => {
+                previousLine.classList.remove('fade-in');
+            }, 1000);
+        }
+
+        // 更新游戏信息
+        function updateGameInfo() {
+            currentDifficulty.textContent = gameState.difficulty === 'easy' ? '简单' : 
+                                           gameState.difficulty === 'medium' ? '中等' : '困难';
+            currentScore.textContent = gameState.score;
+            streakCount.textContent = gameState.streak;
+        }
+
+        // 检查答案
+        function checkAnswer() {
+            const answer = userAnswer.value.trim();
+            
+            if (answer === '') {
+                showFeedback('请输入答案！', 'warning');
+                return;
+            }
+            
+            // 简单的答案验证（不考虑标点符号）
+            const cleanAnswer = answer.replace(/[，。,.]/g, '');
+            const cleanCorrectAnswer = gameState.currentLine.next.replace(/[，。,.]/g, '');
+            
+            if (cleanAnswer === cleanCorrectAnswer) {
+                // 答案正确
+                const basePoints = gameState.difficulty === 'easy' ? 10 : 
+                                  gameState.difficulty === 'medium' ? 15 : 20;
+                const streakBonus = gameState.streak > 0 ? 0.1 * gameState.streak : 0;
+                
+                const pointsEarned = Math.round(basePoints * (1 + streakBonus));
+                gameState.score += pointsEarned;
+                gameState.streak++;
+                
+                showFeedback(`答对了！+${pointsEarned}分`, 'correct');
+                
+                // 添加正确动画
+                userAnswer.classList.add('correct-answer');
+                setTimeout(() => {
+                    userAnswer.classList.remove('correct-answer');
+                }, 500);
+                
+                // 更新游戏信息
+                updateGameInfo();
+                
+                // 延迟加载下一句
+                setTimeout(() => {
+                    gameState.lineIndex++;
+                    loadNextLine();
+                }, 1500);
+            } else {
+                // 答案错误
+                gameState.streak = 0;
+                showFeedback(`答错了，正确答案是：${gameState.currentLine.next}`, 'wrong');
+                
+                // 添加错误动画
+                userAnswer.classList.add('wrong-answer');
+                setTimeout(() => {
+                    userAnswer.classList.remove('wrong-answer');
+                }, 500);
+                
+                // 更新游戏信息
+                updateGameInfo();
+                
+                // 延迟加载下一句
+                setTimeout(() => {
+                    gameState.lineIndex++;
+                    loadNextLine();
+                }, 2000);
+            }
+        }
+
+        // 显示反馈
+        function showFeedback(message, type) {
+            feedback.innerHTML = '';
+            
+            const feedbackElement = document.createElement('div');
+            feedbackElement.className = `p-3 rounded-lg ${
+                type === 'correct' ? 'bg-green-100 text-green-800' : 
+                type === 'wrong' ? 'bg-red-100 text-red-800' : 
+                'bg-yellow-100 text-yellow-800'
+            }`;
+            
+            feedbackElement.textContent = message;
+            feedback.appendChild(feedbackElement);
+            
+            // 添加动画效果
+            feedbackElement.classList.add('fade-in');
+        }
+
+        // 显示胜利界面
+        function showVictoryScreen() {
+            finalScore.textContent = gameState.score;
+            finalStreak.textContent = gameState.streak;
+            
+            gameSection.classList.add('hidden');
+            victoryScreen.classList.remove('hidden');
+        }
+
+        // 事件监听器
+        document.querySelectorAll('[data-difficulty]').forEach(button => {
+            button.addEventListener('click', () => {
+                const difficulty = button.dataset.difficulty;
+                startGame(difficulty);
+            });
+        });
+
+        submitBtn.addEventListener('click', checkAnswer);
+        userAnswer.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        skipBtn.addEventListener('click', () => {
+            showFeedback(`跳过，正确答案是：${gameState.currentLine.next}`, 'info');
+            gameState.streak = 0;
+            gameState.lineIndex++;
+            
+            setTimeout(() => {
+                loadNextLine();
+            }, 1500);
+        });
+
+        restartBtn.addEventListener('click', () => {
+            if (gameState.difficulty) {
+                startGame(gameState.difficulty);
+            }
+        });
+
+        playAgainBtn.addEventListener('click', () => {
+            if (gameState.difficulty) {
+                startGame(gameState.difficulty);
+            }
+        });
+
+        changeDifficultyBtn.addEventListener('click', () => {
+            gameState = {
+                difficulty: null,
+                currentPoem: null,
+                currentLine: null,
+                score: 0,
+                streak: 0,
+                poemIndex: 0,
+                lineIndex: 0
+            };
+            victoryScreen.classList.add('hidden');
+            difficultySelection.classList.remove('hidden');
+        });
+
+        helpBtn.addEventListener('click', () => {
+            helpModal.classList.remove('hidden');
+        });
+
+        closeHelpBtn.addEventListener('click', () => {
+            helpModal.classList.add('hidden');
+        });
+
+        gotItBtn.addEventListener('click', () => {
+            helpModal.classList.add('hidden');
+        });
+
+        // 点击模态框外部关闭
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) {
+                helpModal.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
+    
